@@ -1,8 +1,11 @@
 package qiwi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/url"
 	"time"
 )
@@ -12,22 +15,40 @@ type History struct {
 	client *Client
 }
 
-// NewHistory returns new Histpry obj
+// NewHistory returns new History obj
 func NewHistory(c *Client) *History {
 	return &History{client: c}
 }
 
 // Payments call api and get payments history
-func (h *History) Payments(rows uint) (hr *PaymentsResponse, err error) {
-	body, err := h.client.makeRequest(EndpointPaymentsHistory, url.Values{"rows": {fmt.Sprint(rows)}})
+func (h *History) Payments(rows uint, params ...url.Values) (hr *PaymentsResponse, err error) {
+	param := url.Values{}
+
+	{
+		if len(params) > 0 {
+			param = params[0]
+		}
+		param["rows"] = []string{fmt.Sprint(rows)}
+	}
+
+	body, err := h.client.makeRequest(EndpointPaymentsHistory, param)
 	if err != nil {
 		return
 	}
 	defer body.Close()
 
+	bts, err := ioutil.ReadAll(body)
+	if err != nil {
+		return
+	}
+
+	buf := bytes.NewReader(bts)
+
+	log.Printf("%s", bts)
+
 	hr = new(PaymentsResponse)
 
-	dec := json.NewDecoder(body)
+	dec := json.NewDecoder(buf)
 	err = dec.Decode(hr)
 	return
 }

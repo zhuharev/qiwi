@@ -34,6 +34,8 @@ func New(token string, opts ...Opt) *Client {
 	}
 
 	c.History = NewHistory(c)
+	c.Profile = NewProfile(c)
+	c.Balance = NewBalance(c)
 
 	for _, fn := range opts {
 		fn(c)
@@ -50,6 +52,10 @@ type Client struct {
 	httpClient *http.Client
 
 	History *History
+	Profile *Profile
+	Balance *Balance
+
+	debug bool
 }
 
 func (c *Client) makeRequest(endpoint string, params ...url.Values) (io.ReadCloser, error) {
@@ -76,4 +82,8 @@ func (c *Client) makeRequest(endpoint string, params ...url.Values) (io.ReadClos
 
 	resp, err := http.DefaultClient.Do(req)
 	return resp.Body, err
+}
+
+func (c *Client) SetWallet(wallet string) {
+	c.wallet = wallet
 }
