@@ -33,7 +33,7 @@ func (h *Profile) Current() (hr *ProfileResponse, err error) {
 
 	buf := bytes.NewReader(bts)
 
-	log.Printf("%s", bts)
+	log.Printf("[profile resp] %s", bts)
 
 	hr = new(ProfileResponse)
 

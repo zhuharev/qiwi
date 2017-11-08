@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -31,6 +33,7 @@ func New(token string, opts ...Opt) *Client {
 		token:      token,
 		baseURL:    BaseURL,
 		httpClient: http.DefaultClient,
+		debug:      true,
 	}
 
 	c.History = NewHistory(c)
@@ -72,6 +75,9 @@ func (c *Client) makeRequest(endpoint string, params ...url.Values) (io.ReadClos
 		uri = fmt.Sprintf("%s?%s", uri, query)
 	}
 
+	if c.debug {
+		color.Green("Request %s", uri)
+	}
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		return nil, err
@@ -79,8 +85,12 @@ func (c *Client) makeRequest(endpoint string, params ...url.Values) (io.ReadClos
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
+	color.Cyan("token %s", c.token)
 
 	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 	return resp.Body, err
 }
 

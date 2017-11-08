@@ -13,3 +13,8 @@ func Wallet(wallet string) func(c *Client) {
 		c.wallet = wallet
 	}
 }
+
+// Debug enable debug
+func Debug(c *Client) {
+	c.debug = true
+}
