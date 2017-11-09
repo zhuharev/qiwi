@@ -1,3 +1,7 @@
+// Copyright 2017 Kirill Zhuharev. All rights reserved.
+// Use of this source code is governed by a MIT-style
+// license that can be found in the LICENSE file.
+
 package qiwi
 
 import (
@@ -104,4 +108,49 @@ type Txn struct {
 	RepeatPaymentEnabled   bool          `json:"repeatPaymentEnabled"`
 	FavoritePaymentEnabled bool          `json:"favoritePaymentEnabled"`
 	RegularPaymentEnabled  bool          `json:"regularPaymentEnabled"`
+}
+
+// StatResponse response of stat endpoind
+type StatResponse struct {
+	IncomingTotal []struct {
+		Amount   float64 `json:"amount"`
+		Currency int     `json:"currency"`
+	} `json:"incomingTotal"`
+	OutgoingTotal []struct {
+		Amount   float64 `json:"amount"`
+		Currency int     `json:"currency"`
+	} `json:"outgoingTotal"`
+}
+
+// Stat get sum of incoming and outgoing payments
+func (h *History) Stat(startDate, endDate time.Time, params ...url.Values) (res StatResponse, err error) {
+	param := url.Values{}
+
+	{
+		if len(params) > 0 {
+			param = params[0]
+		}
+		param["startDate"] = []string{startDate.Format(time.RFC3339)}
+		param["endDate"] = []string{endDate.Format(time.RFC3339)}
+	}
+
+	body, err := h.client.makeRequest(EndpointStat, param)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+
+	bts, err := ioutil.ReadAll(body)
+	if err != nil {
+		return
+	}
+
+	buf := bytes.NewReader(bts)
+
+	log.Printf("%s", bts)
+
+	dec := json.NewDecoder(buf)
+	err = dec.Decode(&res)
+
+	return
 }
