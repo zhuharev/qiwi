@@ -2,13 +2,15 @@
 
 An golang qiwi.com api client
 
-You need to get access token [here](https://qiwi.com/api)
+Qiwi.com - CIS and Russian Payment system and this package relevant for Russian-speaking users. All the following documentation will be in Russian.
 
-## Install
+Чтобы получить токен доступа, перейдите по [ссылке](https://qiwi.com/api)
+
+## Установка
 
 `go get -u github.com/zhuharev/qiwi`
 
-## Usage
+## Использование
 
 ```go
 token = "YOUR_TOKEN"
