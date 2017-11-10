@@ -4,13 +4,6 @@
 
 package qiwi
 
-import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"log"
-)
-
 // Balance for payment-history endpoints
 type Balance struct {
 	client *Client
@@ -22,28 +15,12 @@ func NewBalance(c *Client) *Balance {
 }
 
 // Current call api and get current user balance
-func (b *Balance) Current() (hr *BalanceResponse, err error) {
-	body, err := b.client.makeRequest(EndpointBalance)
-	if err != nil {
-		return
-	}
-	defer body.Close()
-
-	bts, err := ioutil.ReadAll(body)
+func (b *Balance) Current() (hr BalanceResponse, err error) {
+	err = b.client.makeRequest(EndpointBalance, &hr)
 	if err != nil {
 		return
 	}
 
-	buf := bytes.NewReader(bts)
-
-	if b.client.debug {
-		log.Printf("%s", bts)
-	}
-
-	hr = new(BalanceResponse)
-
-	dec := json.NewDecoder(buf)
-	err = dec.Decode(hr)
 	return
 }
 

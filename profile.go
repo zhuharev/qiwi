@@ -4,13 +4,7 @@
 
 package qiwi
 
-import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"time"
-)
+import "time"
 
 // Profile for profile endpoints
 type Profile struct {
@@ -23,26 +17,12 @@ func NewProfile(c *Client) *Profile {
 }
 
 // Current call api and get current user profile
-func (h *Profile) Current() (hr *ProfileResponse, err error) {
-	body, err := h.client.makeRequest(EndpointProfile)
-	if err != nil {
-		return
-	}
-	defer body.Close()
-
-	bts, err := ioutil.ReadAll(body)
+func (h *Profile) Current() (pr ProfileResponse, err error) {
+	err = h.client.makeRequest(EndpointProfile, &pr)
 	if err != nil {
 		return
 	}
 
-	buf := bytes.NewReader(bts)
-
-	log.Printf("[profile resp] %s", bts)
-
-	hr = new(ProfileResponse)
-
-	dec := json.NewDecoder(buf)
-	err = dec.Decode(hr)
 	return
 }
 

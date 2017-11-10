@@ -5,27 +5,23 @@
 package qiwi
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/url"
 	"time"
 )
 
-// History for payment-history endpoints
-type History struct {
+// Payments for payment-history endpoints
+type Payments struct {
 	client *Client
 }
 
-// NewHistory returns new History obj
-func NewHistory(c *Client) *History {
-	return &History{client: c}
+// NewPayments returns new Payments obj
+func NewPayments(c *Client) *Payments {
+	return &Payments{client: c}
 }
 
-// Payments call api and get payments history
-func (h *History) Payments(rows uint, params ...url.Values) (hr *PaymentsResponse, err error) {
+// History call api and get payments history
+func (p *Payments) History(rows uint, params ...url.Values) (pr PaymentsResponse, err error) {
 	param := url.Values{}
 
 	{
@@ -35,25 +31,11 @@ func (h *History) Payments(rows uint, params ...url.Values) (hr *PaymentsRespons
 		param["rows"] = []string{fmt.Sprint(rows)}
 	}
 
-	body, err := h.client.makeRequest(EndpointPaymentsHistory, param)
-	if err != nil {
-		return
-	}
-	defer body.Close()
-
-	bts, err := ioutil.ReadAll(body)
+	err = p.client.makeRequest(EndpointPaymentsHistory, &pr, param)
 	if err != nil {
 		return
 	}
 
-	buf := bytes.NewReader(bts)
-
-	log.Printf("%s", bts)
-
-	hr = new(PaymentsResponse)
-
-	dec := json.NewDecoder(buf)
-	err = dec.Decode(hr)
 	return
 }
 
@@ -123,7 +105,7 @@ type StatResponse struct {
 }
 
 // Stat get sum of incoming and outgoing payments
-func (h *History) Stat(startDate, endDate time.Time, params ...url.Values) (res StatResponse, err error) {
+func (p *Payments) Stat(startDate, endDate time.Time, params ...url.Values) (res StatResponse, err error) {
 	param := url.Values{}
 
 	{
@@ -134,23 +116,90 @@ func (h *History) Stat(startDate, endDate time.Time, params ...url.Values) (res 
 		param["endDate"] = []string{endDate.Format(time.RFC3339)}
 	}
 
-	body, err := h.client.makeRequest(EndpointStat, param)
+	err = p.client.makeRequest(EndpointStat, &res, param)
 	if err != nil {
 		return
 	}
-	defer body.Close()
+	return
+}
 
-	bts, err := ioutil.ReadAll(body)
+// ComissionResponse  json unserialazer
+type ComissionResponse struct {
+	Content struct {
+		Terms struct {
+			Commission struct {
+				Ranges []struct {
+					Bound float64 `json:"bound"`
+					Fixed float64 `json:"fixed"`
+					Rate  float64 `json:"rate"`
+					Min   float64 `json:"min"`
+					Max   float64 `json:"max"`
+				} `json:"ranges"`
+			} `json:"commission"`
+		} `json:"terms"`
+	} `json:"content"`
+}
+
+// Comission get provider comission
+func (p *Payments) Comission(providerID int) (res ComissionResponse, err error) {
+	var (
+		endpoint = fmt.Sprintf(EndpointComission, providerID)
+	)
+	err = p.client.makeRequest(endpoint, &res)
 	if err != nil {
 		return
 	}
+	return
+}
 
-	buf := bytes.NewReader(bts)
+// SpecialComissionRequest json serializer
+type SpecialComissionRequest struct {
+	Account       string `json:"account"`
+	PaymentMethod struct {
+		Type      string `json:"type"`
+		AccountID string `json:"accountId"`
+	} `json:"paymentMethod"`
+	PurchaseTotals struct {
+		Total struct {
+			Amount   float64 `json:"amount"`
+			Currency string  `json:"currency"`
+		} `json:"total"`
+	} `json:"purchaseTotals"`
+}
 
-	log.Printf("%s", bts)
+// SpecialComissionResponse json unserialazer
+type SpecialComissionResponse struct {
+	ProviderID  int `json:"providerId"`
+	WithdrawSum struct {
+		Amount   float64 `json:"amount"`
+		Currency string  `json:"currency"`
+	} `json:"withdrawSum"`
+	EnrollmentSum struct {
+		Amount   float64 `json:"amount"`
+		Currency string  `json:"currency"`
+	} `json:"enrollmentSum"`
+	QwCommission struct {
+		Amount   float64 `json:"amount"`
+		Currency string  `json:"currency"`
+	} `json:"qwCommission"`
+	FundingSourceCommission struct {
+		Amount   float64 `json:"amount"`
+		Currency string  `json:"currency"`
+	} `json:"fundingSourceCommission"`
+	WithdrawToEnrollmentRate float64 `json:"withdrawToEnrollmentRate"`
+}
 
-	dec := json.NewDecoder(buf)
-	err = dec.Decode(&res)
+// SpecialComission get provider comission
+func (p *Payments) SpecialComission(providerID int, to string, amount float64) (res ComissionResponse, err error) {
+	req := SpecialComissionRequest{Account: to}
+	req.PaymentMethod.Type = "Account"
+	req.PaymentMethod.AccountID = "634"
+	req.PurchaseTotals.Total.Amount = amount
+	req.PurchaseTotals.Total.Currency = "634"
 
+	var (
+		endpoint = fmt.Sprintf(EndpointSpecialComission, providerID)
+	)
+	err = p.client.makePostRequest(endpoint, &res)
 	return
 }

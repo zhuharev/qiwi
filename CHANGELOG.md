@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.2] - 2017-11-10
+### Changed
+- History to Payments
+- makeRequest now not return io.ReadCloser and at once unmarshal json
+
 ## [0.0.1] - 2017-11-09
 ### Added
 - Changelog

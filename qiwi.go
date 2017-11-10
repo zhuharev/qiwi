@@ -42,6 +42,10 @@ const (
 	EndpointCardsDetect = "card/detect.action"
 	// EndpointCardsPayment send money from wallet
 	EndpointCardsPayment = "sinap/api/v2/terms/%d/payments"
+	// EndpointComission a provider comission
+	EndpointComission = "sinap/providers/%d/form"
+	// EndpointSpecialComission comission for specific amount
+	EndpointSpecialComission = "sinap/providers/%d/onlineCommission"
 )
 
 var (
@@ -61,7 +65,7 @@ func New(token string, opts ...Opt) *Client {
 		debug:       true,
 	}
 
-	c.History = NewHistory(c)
+	c.Payments = NewPayments(c)
 	c.Profile = NewProfile(c)
 	c.Balance = NewBalance(c)
 	c.Cards = NewCards(c)
@@ -81,27 +85,27 @@ type Client struct {
 
 	httpClient *http.Client
 
-	History *History
-	Profile *Profile
-	Balance *Balance
-	Cards   *Cards
+	Payments *Payments
+	Profile  *Profile
+	Balance  *Balance
+	Cards    *Cards
 
 	debug bool
 }
 
-func (c *Client) makeRequest(endpoint string, params ...url.Values) (io.ReadCloser, error) {
+func (c *Client) makeRequest(endpoint string, res interface{}, params ...url.Values) (err error) {
 	var param url.Values
 	if len(params) > 0 {
 		param = params[0]
 	}
-	return c.req("GET", endpoint, param)
+	return c.req("GET", endpoint, res, param)
 }
 
-func (c *Client) makePostRequest(endpoint string, params ...interface{}) (io.ReadCloser, error) {
-	return c.req("POST", endpoint, params...)
+func (c *Client) makePostRequest(endpoint string, res interface{}, params ...interface{}) (err error) {
+	return c.req("POST", endpoint, res, params...)
 }
 
-func (c *Client) req(method, endpoint string, params ...interface{}) (io.ReadCloser, error) {
+func (c *Client) req(method, endpoint string, res interface{}, params ...interface{}) (err error) {
 
 	var (
 		needWalletID = []string{
@@ -138,9 +142,11 @@ func (c *Client) req(method, endpoint string, params ...interface{}) (io.ReadClo
 				color.Cyan("body: %v", v.Encode())
 				body = strings.NewReader(v.Encode())
 			case PaymentRequest:
-				bts, err := json.Marshal(v)
+			case SpecialComissionRequest:
+				var bts []byte
+				bts, err = json.Marshal(v)
 				if err != nil {
-					return nil, err
+					return
 				}
 				color.Cyan("body: %s", bts)
 				body = bytes.NewReader(bts)
@@ -155,7 +161,7 @@ func (c *Client) req(method, endpoint string, params ...interface{}) (io.ReadClo
 
 	req, err := http.NewRequest(method, uri, body)
 	if err != nil {
-		return nil, err
+		return
 	}
 	req.Header.Set("Accept", "application/json")
 	if !isOpenMethod {
@@ -174,9 +180,11 @@ func (c *Client) req(method, endpoint string, params ...interface{}) (io.ReadClo
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return
 	}
-	return resp.Body, err
+	defer resp.Body.Close()
+
+	return c.decodeResponse(resp.Body, res)
 }
 
 // SetWallet set wallet for client
