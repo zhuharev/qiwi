@@ -23,6 +23,9 @@ const (
 	OpenBaseURL = "https://qiwi.com"
 	// VersionAPI current qiwi.com api version
 	VersionAPI = "v1"
+
+	// CurrencyRUB rub id
+	CurrencyRUB = "643"
 )
 
 const (
@@ -141,8 +144,8 @@ func (c *Client) req(method, endpoint string, res interface{}, params ...interfa
 			case url.Values:
 				color.Cyan("body: %v", v.Encode())
 				body = strings.NewReader(v.Encode())
-			case PaymentRequest:
-			case SpecialComissionRequest:
+			case PaymentRequest,
+				SpecialComissionRequest:
 				var bts []byte
 				bts, err = json.Marshal(v)
 				if err != nil {
@@ -168,11 +171,13 @@ func (c *Client) req(method, endpoint string, res interface{}, params ...interfa
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	}
 	if method == "POST" {
-		switch params[0].(type) {
-		case url.Values:
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		case PaymentRequest:
-			req.Header.Set("Content-Type", "application/json")
+		if len(params) > 0 {
+			switch params[0].(type) {
+			case url.Values:
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			case PaymentRequest, SpecialComissionRequest:
+				req.Header.Set("Content-Type", "application/json")
+			}
 		}
 	}
 	color.Cyan("token %s", c.token)

@@ -190,16 +190,16 @@ type SpecialComissionResponse struct {
 }
 
 // SpecialComission get provider comission
-func (p *Payments) SpecialComission(providerID int, to string, amount float64) (res ComissionResponse, err error) {
+func (p *Payments) SpecialComission(providerID int, to string, amount float64) (res SpecialComissionResponse, err error) {
 	req := SpecialComissionRequest{Account: to}
 	req.PaymentMethod.Type = "Account"
-	req.PaymentMethod.AccountID = "634"
+	req.PaymentMethod.AccountID = CurrencyRUB
 	req.PurchaseTotals.Total.Amount = amount
-	req.PurchaseTotals.Total.Currency = "634"
+	req.PurchaseTotals.Total.Currency = CurrencyRUB
 
 	var (
 		endpoint = fmt.Sprintf(EndpointSpecialComission, providerID)
 	)
-	err = p.client.makePostRequest(endpoint, &res)
+	err = p.client.makePostRequest(endpoint, &res, req)
 	return
 }
