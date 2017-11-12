@@ -64,6 +64,8 @@ type PaymentRequest struct {
 	Fields struct {
 		Account string `json:"account"`
 	} `json:"fields"`
+	// Qiwi to qiwi related field
+	Comment string `json:"comment,omitempty"`
 }
 
 // PaymentResponse foemat of payment response
@@ -84,10 +86,12 @@ type PaymentResponse struct {
 			Code string `json:"code"`
 		} `json:"state"`
 	} `json:"transaction"`
+	// Qiwi to qiwi related field
+	Comment string `json:"comment,omitempty"`
 }
 
 // Payment make mayment
-func (c *Cards) Payment(psID int, amount float64, cardNumber string) (res PaymentResponse, err error) {
+func (c *Cards) Payment(psID int, amount float64, cardNumber string, comments ...string) (res PaymentResponse, err error) {
 	req := PaymentRequest{
 		ID: strconv.Itoa(int(time.Now().Unix()) * 1000),
 	}
@@ -98,6 +102,10 @@ func (c *Cards) Payment(psID int, amount float64, cardNumber string) (res Paymen
 	req.Sum.Amount = amount
 	req.Sum.Currency = CurrencyRUB
 	req.Fields.Account = cardNumber
+
+	if len(comments) > 0 {
+		req.Comment = comments[0]
+	}
 
 	endpoint := fmt.Sprintf(EndpointCardsPayment, psID)
 
