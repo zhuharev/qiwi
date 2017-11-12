@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.3] - 2017-11-12
+### Added
+- Добавлен опциональный аргумент при создании платежа, который даёт возможность отправлять комментарий вместе с платежом (только для переводов на qiwi-кошельки).
+
 ## [0.0.2] - 2017-11-10
 ### Changed
 - History to Payments
