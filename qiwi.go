@@ -199,6 +199,7 @@ func (c *Client) req(method, endpoint string, res interface{}, params ...interfa
 		if err, has := codeToError[resp.StatusCode]; has {
 			return err
 		}
+		return fmt.Errorf(http.StatusText(resp.StatusCode))
 	}
 
 	return c.decodeResponse(resp.Body, res)
