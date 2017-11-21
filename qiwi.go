@@ -195,6 +195,12 @@ func (c *Client) req(method, endpoint string, res interface{}, params ...interfa
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		if err, has := codeToError[resp.StatusCode]; has {
+			return err
+		}
+	}
+
 	return c.decodeResponse(resp.Body, res)
 }
 
