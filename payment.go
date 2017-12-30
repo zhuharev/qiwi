@@ -82,7 +82,7 @@ type Txn struct {
 	} `json:"provider"`
 	Source                 interface{}   `json:"source"`
 	Comment                string        `json:"comment"`
-	CurrencyRate           int           `json:"currencyRate"`
+	CurrencyRate           float64       `json:"currencyRate"`
 	Extras                 []interface{} `json:"extras"`
 	ChequeReady            bool          `json:"chequeReady"`
 	BankDocumentAvailable  bool          `json:"bankDocumentAvailable"`
