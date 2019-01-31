@@ -90,7 +90,7 @@ type PaymentResponse struct {
 	Comment string `json:"comment,omitempty"`
 }
 
-// Payment make mayment
+//psID идентификатор провайдера.
 func (c *Cards) Payment(psID int, amount float64, cardNumber string, comments ...string) (res PaymentResponse, err error) {
 	req := PaymentRequest{
 		ID: strconv.Itoa(int(time.Now().Unix()) * 1000),

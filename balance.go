@@ -26,19 +26,5 @@ func (b *Balance) Current() (hr BalanceResponse, err error) {
 
 // BalanceResponse response of balance request
 type BalanceResponse struct {
-	Accounts []struct {
-		Alias   string `json:"alias"`
-		FsAlias string `json:"fsAlias"`
-		Title   string `json:"title"`
-		Type    struct {
-			ID    string `json:"id"`
-			Title string `json:"title"`
-		} `json:"type"`
-		HasBalance bool `json:"hasBalance"`
-		Balance    struct {
-			Amount   float64 `json:"amount"`
-			Currency int     `json:"currency"`
-		} `json:"balance"`
-		Currency int `json:"currency"`
-	} `json:"accounts"`
+	Accounts []Account
 }
