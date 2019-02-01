@@ -26,6 +26,12 @@ const (
 
 	// CurrencyRUB rub id
 	CurrencyRUB = "643"
+	//Доллары
+	CurrencyUSD = "840"
+	//Евро
+	CurrencyEUR = "978"
+	//Тенге
+	CurrencyKZT = "398"
 )
 
 const (
@@ -147,7 +153,7 @@ func (c *Client) req(method, endpoint string, res interface{}, params ...interfa
 				}
 				body = strings.NewReader(v.Encode())
 			case PaymentRequest,
-				SpecialComissionRequest:
+			SpecialComissionRequest:
 				var bts []byte
 				bts, err = json.Marshal(v)
 				if err != nil {
