@@ -147,7 +147,7 @@ type Account struct {
 	FsAlias    string     `json:"fsAlias"`
 	Title      string     `json:"title"`
 	HasBalance bool       `json:"hasBalance"`
-	Currency   int     `json:"currency"`
+	Currency   int        `json:"currency"`
 	Type       Type       `json:"type"`
 	Balance    SumNumeric `json:"balance"`
 }
@@ -212,7 +212,7 @@ type PurchaseTotal struct {
 
 type PaymentMethod struct {
 	Type      string `json:"type"`
-	AccountId string `json:"accountId"`
+	AccountID string `json:"accountId"`
 }
 
 type SpecialRate struct {

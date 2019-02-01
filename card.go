@@ -116,3 +116,54 @@ func (c *Cards) Payment(psID int, amount float64, cardNumber string, comments ..
 
 	return
 }
+
+type SngPaymentRequest struct {
+	ID            string `json:"id"`
+	Sum           Sum
+	PaymentMethod PaymentMethod
+	Fields        struct {
+		Account    string `json:"account"`     //Номер банковской карты получателя
+		RemName    string `json:"rem_name"`    //Имя отправителя.
+		RemNameF   string `json:"rem_name_f"`  // Фамилия отправителя.
+		RecAddress string `json:"rec_address"` //Адрес отправителя
+		RecCity    string `json:"rec_city"`    //Город отправителя.
+		RecCountry string `json:"rec_country"` //Страна отправителя.
+		RegName    string `json:"reg_name"`    //Имя получателя.
+		RegNameF   string `json:"reg_name_f"`  //Фамилия получателя.
+	} `json:"fields"`
+	// Qiwi to qiwi related field
+	Comment string `json:"comment,omitempty"`
+}
+
+func (c *Cards) PaymentToSngCards(psID int, amount float64, cardNumber string, comments ...string) (res PaymentResponse, err error) {
+	req := SngPaymentRequest{
+		ID: strconv.Itoa(int(time.Now().Unix()) * 1000),
+	}
+	// constants
+	req.PaymentMethod.Type = "Account"
+	req.PaymentMethod.AccountID = CurrencyRUB
+
+	req.Sum.Amount = 200
+	req.Sum.Currency = CurrencyRUB
+	req.Fields.Account = cardNumber
+	//req.Fields.RemName = ""
+	//req.Fields.RegNameF = ""
+	//req.Fields.RecAddress = ""
+	//req.Fields.RecCity = ""
+	//req.Fields.RecCountry = ""
+	//req.Fields.RegName = ""
+	//req.Fields.RegNameF = ""
+
+	if len(comments) > 0 {
+		req.Comment = comments[0]
+	}
+
+	endpoint := fmt.Sprintf(EndpointCardsPayment, psID)
+
+	err = c.client.makePostRequest(endpoint, &res, req)
+	if err != nil {
+		return
+	}
+
+	return
+}
