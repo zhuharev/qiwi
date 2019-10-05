@@ -4,7 +4,10 @@
 
 package qiwi
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // Profile for profile endpoints
 type Profile struct {
@@ -17,8 +20,8 @@ func NewProfile(c *Client) *Profile {
 }
 
 // Current call api and get current user profile
-func (h *Profile) Current() (pr ProfileResponse, err error) {
-	err = h.client.makeRequest(EndpointProfile, &pr)
+func (h *Profile) Current(ctx context.Context) (pr ProfileResponse, err error) {
+	err = h.client.makeRequest(ctx, EndpointProfile, &pr)
 	if err != nil {
 		return
 	}

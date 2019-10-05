@@ -5,22 +5,13 @@
 package qiwi
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
 	"time"
 )
-
-// Cards for payment-history endpoints
-type Cards struct {
-	client *Client
-}
-
-// NewCards returns new Cards obj
-func NewCards(c *Client) *Cards {
-	return &Cards{client: c}
-}
 
 // CardsDetectResponse api response
 type CardsDetectResponse struct {
@@ -32,9 +23,9 @@ type CardsDetectResponse struct {
 }
 
 // Detect detect card PS
-func (c *Cards) Detect(cardNumber string) (id int, err error) {
+func (c *Payments) DetectProviderIDByCardNumber(ctx context.Context, cardNumber string) (id int, err error) {
 	var r CardsDetectResponse
-	err = c.client.makePostRequest(EndpointCardsDetect, &r, url.Values{"cardNumber": {cardNumber}})
+	err = c.client.makePostRequest(ctx, EndpointCardsDetect, &r, url.Values{"cardNumber": {cardNumber}})
 	if err != nil {
 		return
 	}
@@ -57,12 +48,16 @@ type PaymentRequest struct {
 		Amount   float64 `json:"amount"`
 		Currency string  `json:"currency"`
 	} `json:"sum"`
-	PaymentMethod struct {
-		Type      string `json:"type"`
-		AccountID string `json:"accountId"`
-	} `json:"paymentMethod"`
-	Fields struct {
-		Account string `json:"account"`
+	PaymentMethod PaymentMethod `json:"paymentMethod"`
+	Fields        struct {
+		Account    string `json:"account"`               // Номер банковской карты
+		RemName    string `json:"rem_name,omitempty"`    //Имя отправителя.
+		RemNameF   string `json:"rem_name_f,omitempty"`  // Фамилия отправителя.
+		RecAddress string `json:"rec_address,omitempty"` //Адрес отправителя
+		RecCity    string `json:"rec_city,omitempty"`    //Город отправителя.
+		RecCountry string `json:"rec_country,omitempty"` //Страна отправителя.
+		RegName    string `json:"reg_name,omitempty"`    //Имя получателя.
+		RegNameF   string `json:"reg_name_f,omitempty"`  //Фамилия получателя.
 	} `json:"fields"`
 	// Qiwi to qiwi related field
 	Comment string `json:"comment,omitempty"`
@@ -90,8 +85,8 @@ type PaymentResponse struct {
 	Comment string `json:"comment,omitempty"`
 }
 
-//psID идентификатор провайдера.
-func (c *Cards) Payment(psID int, amount float64, cardNumber string, comments ...string) (res PaymentResponse, err error) {
+// Payment make mayment
+func (c *Payments) Payment(ctx context.Context, psID int, amount float64, account string, comments ...string) (res PaymentResponse, err error) {
 	req := PaymentRequest{
 		ID: strconv.Itoa(int(time.Now().Unix()) * 1000),
 	}
@@ -101,66 +96,15 @@ func (c *Cards) Payment(psID int, amount float64, cardNumber string, comments ..
 
 	req.Sum.Amount = amount
 	req.Sum.Currency = CurrencyRUB
-	req.Fields.Account = cardNumber
+	req.Fields.Account = account
 
 	if len(comments) > 0 {
 		req.Comment = comments[0]
 	}
 
-	endpoint := fmt.Sprintf(EndpointCardsPayment, psID)
+	endpoint := fmt.Sprintf(EndpointPayment, psID)
 
-	err = c.client.makePostRequest(endpoint, &res, req)
-	if err != nil {
-		return
-	}
-
-	return
-}
-
-type SngPaymentRequest struct {
-	ID            string `json:"id"`
-	Sum           Sum
-	PaymentMethod PaymentMethod
-	Fields        struct {
-		Account    string `json:"account"`     //Номер банковской карты получателя
-		RemName    string `json:"rem_name"`    //Имя отправителя.
-		RemNameF   string `json:"rem_name_f"`  // Фамилия отправителя.
-		RecAddress string `json:"rec_address"` //Адрес отправителя
-		RecCity    string `json:"rec_city"`    //Город отправителя.
-		RecCountry string `json:"rec_country"` //Страна отправителя.
-		RegName    string `json:"reg_name"`    //Имя получателя.
-		RegNameF   string `json:"reg_name_f"`  //Фамилия получателя.
-	} `json:"fields"`
-	// Qiwi to qiwi related field
-	Comment string `json:"comment,omitempty"`
-}
-
-func (c *Cards) PaymentToSngCards(psID int, amount float64, cardNumber string, comments ...string) (res PaymentResponse, err error) {
-	req := SngPaymentRequest{
-		ID: strconv.Itoa(int(time.Now().Unix()) * 1000),
-	}
-	// constants
-	req.PaymentMethod.Type = "Account"
-	req.PaymentMethod.AccountID = CurrencyRUB
-
-	req.Sum.Amount = 200
-	req.Sum.Currency = CurrencyRUB
-	req.Fields.Account = cardNumber
-	//req.Fields.RemName = ""
-	//req.Fields.RegNameF = ""
-	//req.Fields.RecAddress = ""
-	//req.Fields.RecCity = ""
-	//req.Fields.RecCountry = ""
-	//req.Fields.RegName = ""
-	//req.Fields.RegNameF = ""
-
-	if len(comments) > 0 {
-		req.Comment = comments[0]
-	}
-
-	endpoint := fmt.Sprintf(EndpointCardsPayment, psID)
-
-	err = c.client.makePostRequest(endpoint, &res, req)
+	err = c.client.makePostRequest(ctx, endpoint, &res, req)
 	if err != nil {
 		return
 	}

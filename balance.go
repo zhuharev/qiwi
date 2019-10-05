@@ -4,6 +4,8 @@
 
 package qiwi
 
+import "context"
+
 // Balance for payment-history endpoints
 type Balance struct {
 	client *Client
@@ -15,8 +17,8 @@ func NewBalance(c *Client) *Balance {
 }
 
 // Current call api and get current user balance
-func (b *Balance) Current() (hr BalanceResponse, err error) {
-	err = b.client.makeRequest(EndpointBalance, &hr)
+func (b *Balance) Current(ctx context.Context) (hr BalanceResponse, err error) {
+	err = b.client.makeRequest(ctx, EndpointBalance, &hr)
 	if err != nil {
 		return
 	}

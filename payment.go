@@ -5,6 +5,7 @@
 package qiwi
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
@@ -20,8 +21,8 @@ func NewPayments(c *Client) *Payments {
 	return &Payments{client: c}
 }
 
-// History call api and get payments history
-func (p *Payments) History(rows uint, params ...url.Values) (pr PaymentsResponse, err error) {
+// History return payments history
+func (p *Payments) History(ctx context.Context, rows uint, params ...url.Values) (pr PaymentsResponse, err error) {
 	param := url.Values{}
 
 	{
@@ -31,7 +32,7 @@ func (p *Payments) History(rows uint, params ...url.Values) (pr PaymentsResponse
 		param["rows"] = []string{fmt.Sprint(rows)}
 	}
 
-	err = p.client.makeRequest(EndpointPaymentsHistory, &pr, param)
+	err = p.client.makeRequest(ctx, EndpointPaymentsHistory, &pr, param)
 	if err != nil {
 		return
 	}
@@ -105,7 +106,7 @@ type StatResponse struct {
 }
 
 // Stat get sum of incoming and outgoing payments
-func (p *Payments) Stat(startDate, endDate time.Time, params ...url.Values) (res StatResponse, err error) {
+func (p *Payments) Stat(ctx context.Context, startDate, endDate time.Time, params ...url.Values) (res StatResponse, err error) {
 	param := url.Values{}
 
 	{
@@ -116,7 +117,7 @@ func (p *Payments) Stat(startDate, endDate time.Time, params ...url.Values) (res
 		param["endDate"] = []string{endDate.Format(time.RFC3339)}
 	}
 
-	err = p.client.makeRequest(EndpointStat, &res, param)
+	err = p.client.makeRequest(ctx, EndpointStat, &res, param)
 	if err != nil {
 		return
 	}
@@ -141,11 +142,11 @@ type ComissionResponse struct {
 }
 
 // Comission get provider comission
-func (p *Payments) Comission(providerID int) (res ComissionResponse, err error) {
+func (p *Payments) Comission(ctx context.Context, providerID int) (res ComissionResponse, err error) {
 	var (
 		endpoint = fmt.Sprintf(EndpointComission, providerID)
 	)
-	err = p.client.makeRequest(endpoint, &res)
+	err = p.client.makeRequest(ctx, endpoint, &res)
 	if err != nil {
 		return
 	}
@@ -190,7 +191,7 @@ type SpecialComissionResponse struct {
 }
 
 // SpecialComission get provider comission
-func (p *Payments) SpecialComission(providerID int, to string, amount float64) (res SpecialComissionResponse, err error) {
+func (p *Payments) SpecialComission(ctx context.Context, providerID int, to string, amount float64) (res SpecialComissionResponse, err error) {
 	req := SpecialComissionRequest{Account: to}
 	req.PaymentMethod.Type = "Account"
 	req.PaymentMethod.AccountID = CurrencyRUB
@@ -200,6 +201,6 @@ func (p *Payments) SpecialComission(providerID int, to string, amount float64) (
 	var (
 		endpoint = fmt.Sprintf(EndpointSpecialComission, providerID)
 	)
-	err = p.client.makePostRequest(endpoint, &res, req)
+	err = p.client.makePostRequest(ctx, endpoint, &res, req)
 	return
 }
