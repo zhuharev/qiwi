@@ -15,6 +15,8 @@ var (
 	ErrNotFound = fmt.Errorf("Не найден кошелёк, транзакция или отсутствуют платежи с указанными признаками")
 	// ErrRateLimitReached error
 	ErrRateLimitReached = fmt.Errorf("Слишком много запросов, сервис временно недоступен")
+	// ErrInsufficient error
+	ErrInsufficient = fmt.Errorf("Недостаточно средств")
 )
 
 var (
@@ -23,5 +25,7 @@ var (
 		401: ErrTokenInvalid,
 		404: ErrNotFound,
 		423: ErrRateLimitReached,
+
+		220: ErrInsufficient,
 	}
 )
